@@ -1,0 +1,8 @@
+# Files
+*.spec
+
+# Folders
+__pycache__
+cache
+build
+dist

@@ -1,0 +1,4 @@
+[submodule "tools/angle_finder_cli"]
+	path = tools/angle_finder_cli
+	url = https://github.com/Yanis42/oot_angle_finder.git
+	branch = console_mode
