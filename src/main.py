@@ -31,6 +31,7 @@ checkBoxToGroup = {
     "enableFrameTurn": "c-up frame turn",
 }
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         """Main initialisation function"""
@@ -54,7 +55,7 @@ class MainWindow(QMainWindow):
         if enableAssert:
             assert len(values) > 0
         return values
-    
+
     def appendListArguments(self, argPrefix: str, argList: list):
         self.command.append(argPrefix)
         for arg in argList:
