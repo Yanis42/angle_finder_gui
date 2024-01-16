@@ -1,10 +1,35 @@
 #!/usr/bin/env python3
 
+import os
+
 from sys import exit, argv
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QMainWindow, QApplication, QTableWidgetItem, QTableWidget
+from PyQt6.QtCore import Qt, QProcess
+from PyQt6.QtWidgets import QMainWindow, QApplication, QTableWidgetItem, QTableWidget, QCheckBox
+from PyQt6.QtGui import QTextCursor
 from MainWindow import Ui_MainWindow
 
+
+checkBoxes = [
+    "enableBasic",
+    "enableTarget",
+    "enableCarry",
+    "enableSword",
+    "enableBiggoron",
+    "enableHammer",
+    "enableShieldCorners",
+    "enableFrameTurn",
+]
+
+checkBoxToGroup = {
+    "enableBasic": "basic",
+    "enableTarget": "target_enabled",
+    "enableCarry": "no_carry",
+    "enableSword": "sword",
+    "enableBiggoron": "biggoron",
+    "enableHammer": "hammer",
+    "enableShieldCorners": "shield corners",
+    "enableFrameTurn": "c-up frame turn",
+}
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -13,18 +38,90 @@ class MainWindow(QMainWindow):
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.ui.findAnglesTable
+        self.proc = QProcess(self)
 
         self.initConnections()
 
     def print(self, content: str):
-        self.outputPlainTextEdit.appendPlainText(content + ("\n" if not content.endswith("\n") else ""))
+        self.ui.output.appendPlainText(content + ("\n" if not content.endswith("\n") else ""))
+
+    def getTableValues(self, table: QTableWidget, enableAssert: bool = True):
+        values: list[str] = []
+        for i in range(table.rowCount()):
+            curItem = table.item(i, 0)
+            if curItem is not None:
+                values.append(curItem.text())
+        if enableAssert:
+            assert len(values) > 0
+        return values
+    
+    def appendListArguments(self, argPrefix: str, argList: list):
+        self.command.append(argPrefix)
+        for arg in argList:
+            self.command.append(f"{arg}")
+
+    def searchAngles(self):
+        self.optionsSetEnabled(False)
+
+        self.allowedGroups: list[str] = []
+        self.startAngles: list[str] = []
+        self.findAngles: list[str] = []
+        self.avoidAngles: list[str] = []
+        self.command: list[str] = []
+
+        for checkBox in checkBoxes:
+            curCheckBox: QCheckBox = getattr(self.ui, checkBox)
+            if curCheckBox.isChecked():
+                self.allowedGroups.append(checkBoxToGroup[checkBox])
+
+        try:
+            assert len(self.allowedGroups) > 0
+            self.startAngles = self.getTableValues(self.ui.startAnglesTable)
+            self.findAngles = self.getTableValues(self.ui.findAnglesTable)
+        except AssertionError:
+            self.print("Assertion Error! Make sure to fill start and find angles tables.")
+            self.optionsSetEnabled(True)
+            return
+
+        self.avoidAngles = self.getTableValues(self.ui.avoidAnglesTable, False)
+
+        self.appendListArguments("-g", self.allowedGroups)
+        self.appendListArguments("-s", self.startAngles)
+        self.appendListArguments("-f", self.findAngles)
+
+        if len(self.avoidAngles) > 0:
+            self.appendListArguments("-a", self.avoidAngles)
+
+        self.print(" ".join(a for a in self.command))
+        self.proc.setProgram(f"./tools/{'AngleFinderCLI.exe' if os.name == 'nt' else 'AngleFinderCLI'}")
+        self.proc.setArguments(self.command)
+        self.proc.start()
+
+    def updateOutput(self):
+        self.print(self.proc.readAllStandardOutput().data().decode("UTF-8"))
+        self.print(self.proc.readAllStandardError().data().decode("UTF-8"))
+        self.ui.output.moveCursor(QTextCursor.MoveOperation.End)
+
+    def optionsSetEnabled(self, isEnabled: bool):
+        for checkBox in checkBoxes:
+            curCheckBox: QCheckBox = getattr(self.ui, checkBox)
+            curCheckBox.setEnabled(isEnabled)
+        self.ui.startAnglesTable.setEnabled(isEnabled)
+        self.ui.findAnglesTable.setEnabled(isEnabled)
+        self.ui.avoidAnglesTable.setEnabled(isEnabled)
+        self.ui.searchBtn.setEnabled(isEnabled)
+
+    def enableOptions(self):
+        self.optionsSetEnabled(True)
 
     # connections callbacks
 
     def initConnections(self):
         """Initialises the callbacks"""
-        pass
+        self.ui.searchBtn.clicked.connect(self.searchAngles)
+        self.proc.readyReadStandardOutput.connect(self.updateOutput)
+        self.proc.readyReadStandardError.connect(self.updateOutput)
+        self.proc.finished.connect(self.enableOptions)
 
     # https://github.com/ingwant/PyQt5-Video-Book/blob/fb6b54048ac5edde42aa14e3efa4485ac5343f14/%23013_QTableWidget_copy_paste/main.py#L17
     def updateKeyPressEvent(self, event, table: QTableWidget):

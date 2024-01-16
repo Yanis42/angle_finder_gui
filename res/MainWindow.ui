@@ -135,7 +135,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="startTab">
       <attribute name="title">
@@ -450,7 +450,7 @@
        <column/>
       </widget>
      </widget>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="avoidTab">
       <attribute name="title">
        <string>Avoid Angles</string>
       </attribute>
