@@ -15,12 +15,12 @@ jobs:
         include:
           - os: windows-latest
             BUILD_NAME: Dev_AngleFinderGUI_Windows
-            BUILD_ARGS: -F -w src/main.py
+            BUILD_ARGS: -F -w --add-data "tools;tools" src/main.py
             CMD_EXEC: PyInstaller
             FILE_TYPE: ".exe"
           - os: ubuntu-latest
             BUILD_NAME: Dev_AngleFinderGUI_Linux
-            BUILD_ARGS: -F -w src/main.py
+            BUILD_ARGS: -F -w --add-data "tools:tools" src/main.py
             CMD_EXEC: pyinstaller
             FILE_TYPE: ""
     steps:

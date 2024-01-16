@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 
 from sys import exit, argv
 from PyQt6.QtCore import Qt, QProcess
@@ -57,9 +58,18 @@ class MainWindow(QMainWindow):
         return values
 
     def appendListArguments(self, argPrefix: str, argList: list):
-        self.command.append(argPrefix)
+        self.args.append(argPrefix)
         for arg in argList:
-            self.command.append(f"{arg}")
+            self.args.append(f"{arg}")
+
+    # from https://stackoverflow.com/a/70405825
+    def getDataFolder(self):
+        # path of your data in same folder of main .py or added using --add-data
+        if getattr(sys, "frozen", False):
+            data_folder_path = sys._MEIPASS
+        else:
+            data_folder_path = os.path.dirname(os.path.abspath(sys.modules["__main__"].__file__))[:-4]
+        return data_folder_path
 
     def searchAngles(self):
         self.optionsSetEnabled(False)
@@ -68,7 +78,7 @@ class MainWindow(QMainWindow):
         self.startAngles: list[str] = []
         self.findAngles: list[str] = []
         self.avoidAngles: list[str] = []
-        self.command: list[str] = []
+        self.args: list[str] = []
 
         for checkBox in checkBoxes:
             curCheckBox: QCheckBox = getattr(self.ui, checkBox)
@@ -93,9 +103,10 @@ class MainWindow(QMainWindow):
         if len(self.avoidAngles) > 0:
             self.appendListArguments("-a", self.avoidAngles)
 
-        self.print(" ".join(a for a in self.command))
-        self.proc.setProgram(f"./tools/{'AngleFinderCLI.exe' if os.name == 'nt' else 'AngleFinderCLI'}")
-        self.proc.setArguments(self.command)
+        self.proc.setProgram(
+            f"{self.getDataFolder()}/tools/{'AngleFinderCLI.exe' if os.name == 'nt' else 'AngleFinderCLI'}"
+        )
+        self.proc.setArguments(self.args)
         self.proc.start()
 
     def updateOutput(self):
