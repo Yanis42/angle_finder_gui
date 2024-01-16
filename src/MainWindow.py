@@ -39,7 +39,7 @@ class Ui_MainWindow(object):
         self.enableTarget.setObjectName("enableTarget")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.ItemRole.FieldRole, self.enableTarget)
         self.enableCarry = QtWidgets.QCheckBox(parent=self.formLayoutWidget)
-        self.enableCarry.setChecked(True)
+        self.enableCarry.setChecked(False)
         self.enableCarry.setObjectName("enableCarry")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.ItemRole.LabelRole, self.enableCarry)
         self.enableSword = QtWidgets.QCheckBox(parent=self.formLayoutWidget)

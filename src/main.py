@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
         values: list[str] = []
         for i in range(table.rowCount()):
             curItem = table.item(i, 0)
-            if curItem is not None:
+            if curItem is not None and len(curItem.text()) > 0:
                 values.append(curItem.text())
         if enableAssert:
             assert len(values) > 0
